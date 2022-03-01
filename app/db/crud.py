@@ -38,13 +38,22 @@ async def create_listing(listing: ListingRequestModel):
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Listing already exists")
     
     #Inserting GPS cords into the dict
-    location = getGPS(listing.address)
+
+    #**********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
+
+
+    # location = getGPS(listing.address)
     
-    if location == None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Address")
+    # if location == None:
+    #     raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Address")
     
-    updatedListing["locationLONG"] = location.longitude
-    updatedListing["locationLAT"] = location.latitude
+    # updatedListing["locationLONG"] = location.longitude
+    # updatedListing["locationLAT"] = location.latitude
+
+    updatedListing["locationLONG"] = -77.036560
+    updatedListing["locationLAT"] = 38.897957
+
+    
    
     # Remove address from dict
     updatedListing.pop('address')
@@ -107,10 +116,17 @@ async def modify_listing(listingId:str, listing: dict):
 
                 addressModel = AddressModel.parse_obj(listing["address"])
                 
-                location = getGPS(addressModel)
 
-                listing["locationLONG"] = location.longitude
-                listing["locationLAT"] = location.latitude
+                #UNCOMMENT THIS WHEN FINAL PRODCUT OKAY
+                #CURRENTLY JUST COORDS FOR THE WHITE HOUSE SO WE DONT SPAM GOOGLE API THANK YOU
+
+                # location = getGPS(addressModel)
+
+                # listing["locationLONG"] = location.longitude
+                # listing["locationLAT"] = location.latitude
+
+                listing["locationLONG"] = -77.036560
+                listing["locationLAT"] = 38.897957
                 
             # Remove address from dict
             listing.pop('address')
@@ -174,14 +190,17 @@ def decode_bson(document,keys):
 
     return newDict
 
-def getGPS(address: AddressModel):
-    # Convert address to long & lat and add it to the dict
-    geolocator = GoogleV3(api_key=config("MAPS"))
 
-    address = address.street + " " + address.city + " " + address.zip + " " + address.state    
+#**********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
+# def getGPS(address: AddressModel):
+#     # Convert address to long & lat and add it to the dict
+#     geolocator = GoogleV3(api_key=config("MAPS"))
 
-    location = geolocator.geocode(address)
-    return location
+#     address = address.street + " " + address.city + " " + address.zip + " " + address.state    
+
+#     location = geolocator.geocode(address)
+    
+#     return location
 
 
     
