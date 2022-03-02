@@ -34,7 +34,7 @@ async def user_get_listing(listingId: str,category: str):
     return  await get_listing(listingId,category)
 
 @rout.get("/getAllListings",response_model=List[ListingResponseModel])
-async def user_get_all_listing(category: str):
+async def user_get_all_listings(category: str):
     return await get_all_listings(category)
 
 @rout.post("/createListing",response_model=ListingResponseModel)

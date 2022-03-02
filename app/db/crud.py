@@ -2,6 +2,8 @@ from fastapi import HTTPException
 from http import HTTPStatus
 from decouple import config
 import motor.motor_asyncio
+
+from app.db.responseModels import ListingResponseModel
 from .requestModels import ListingRequestModel, AddressModel
 from .genericModels import ListingModel
 from bson.objectid import ObjectId
@@ -170,20 +172,18 @@ async def get_all_listings(category : str):
     
     # Finds the first 1000 results within the listing collection
     listings = await listingCollection.find().to_list(1000)
-
+   
     decoded_listings = list()
     if listings != None:
         for listing in listings:
-            decoded_listings.append(decode_bson(listing,ListingModel.get_keys()))
+            decoded_listings.append(decode_bson(listing,ListingResponseModel.get_keys()))
         
     return decoded_listings
 
 
 def decode_bson(document,keys):
     newDict = dict()
-    
     newDict["listing_id"] = str(document["_id"])
-    newDict["rentals"] = document["rentals"]
     
     for key in keys:
         newDict[key] = document[key]
