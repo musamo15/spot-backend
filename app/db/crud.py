@@ -4,7 +4,7 @@ from decouple import config
 import motor.motor_asyncio
 
 from app.db.responseModels import ListingResponseModel
-from .requestModels import ListingRequestModel, AddressModel
+from .requestModels import ListingRequestModel, AddressModel, UserModel
 from .genericModels import ListingModel
 from bson.objectid import ObjectId
 from geopy.geocoders import GoogleV3
@@ -14,7 +14,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(config("DATABASE_URI"))
 db = client.SPOT
 
 # Database Collections
-userCollection = db.User
+userCollection = db.Users
 listingCollection = db.Listings
 
 # A dictionary that correlates the db collections to each category
@@ -179,6 +179,35 @@ async def get_all_listings(category : str):
             decoded_listings.append(decode_bson(listing,ListingResponseModel.get_keys()))
         
     return decoded_listings
+
+async def get_user(userID: str):
+    
+    #validate id
+    try:
+        objectId = ObjectId(userID)
+    except Exception:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid User Id")
+
+    user = await userCollection.find_one({"_id":objectId})
+
+    if user == None:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="No User Found")
+
+    
+    decodedUser = decode_bson_user(user,UserModel.get_keys())
+
+    return decodedUser
+
+    
+def decode_bson_user(document,keys):
+    newDict = dict()
+    newDict["user_id"] = str(document["_id"])
+    
+
+    for key in keys:
+        newDict[key] = document[key]
+
+    return newDict
 
 
 def decode_bson(document,keys):

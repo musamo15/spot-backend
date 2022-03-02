@@ -2,8 +2,8 @@ from fastapi import APIRouter,Request,Response,Depends,status
 from fastapi.security import HTTPBearer
 from typing import Union,List
 from app.db.requestModels import ListingRequestModel
-from app.db.responseModels import ListingResponseModel
-from app.db.crud import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings)
+from app.db.responseModels import ListingResponseModel, UserResponseModel
+from app.db.crud import (create_listing,get_listing, get_user, modify_listing,delete_listing,get_all_listings)
 from app.core.utils import VerifyToken
 
 
@@ -50,4 +50,14 @@ async def user_modify_listing(listingId: str, listing:ListingRequestModel):
 @rout.delete("/deleteListing")
 async def user_delete_listing(listingId: str, category: str):
    return await delete_listing(listingId,category)
-   
+
+
+
+
+
+"""
+    Users
+"""
+@rout.get("/getUser", response_model = UserResponseModel)
+async def user_get_user(userId: str):
+    return await get_user(userId)

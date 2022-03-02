@@ -21,4 +21,17 @@ class RentalsModel(BaseModel):
     start_date: datetime = Field(...)
     end_date: datetime = Field(...)
     
-     
+
+
+class UserModel(BaseModel):
+    user_id: str = Field(...)
+    first_name: str = Field(...)
+    last_name: str = Field(...)
+    email: str = Field(...)
+    phone_number: str = Field(...)
+    #Address?
+
+
+    @staticmethod
+    def get_keys():
+        return list(('first_name','last_name','email','phone_number'))

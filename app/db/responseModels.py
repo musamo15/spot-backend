@@ -1,7 +1,7 @@
 from typing import Optional, Union,List
 from pydantic import BaseModel, Field
 
-from .requestModels import ListingRequestModel
+from .requestModels import ListingRequestModel, UserModel
 
 from app.db.genericModels import *
 
@@ -20,5 +20,13 @@ class ListingResponseModel(ListingModel):
         
         return additionalKeys
     
-   
+
+
+
+class UserResponseModel(UserModel):
+    user_id: str = Field(...)
+    first_name: str = Field(...)
+    last_name: str = Field(...)
+    email: str = Field(...)
+    phone_number: str = Field(...)
  
