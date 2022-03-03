@@ -14,7 +14,7 @@ client = motor.motor_asyncio.AsyncIOMotorClient(config("DATABASE_URI"))
 db = client.SPOT
 
 # Database Collections
-userCollection = db.Users
+userCollection = db.users
 listingCollection = db.Listings
 
 # A dictionary that correlates the db collections to each category
@@ -23,104 +23,108 @@ listingsCollections = {
     "Car": db.CarListings
 }
 
+
 async def create_listing(listing: ListingRequestModel):
-    
+
     updatedListing = listing.dict()
-    
+
     # determine category
     listingCollection = listingsCollections.get(updatedListing.get("category"))
-    
+
     if listingCollection == None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Category")
-    
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid Category")
+
     # Check if listing exists
-    found_listing = await listingCollection.find_one(updatedListing)   
-    
+    found_listing = await listingCollection.find_one(updatedListing)
+
     if found_listing != None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Listing already exists")
-    
-    #Inserting GPS cords into the dict
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Listing already exists")
 
-    #**********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
+    # Inserting GPS cords into the dict
 
+    # **********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
 
     # location = getGPS(listing.address)
-    
+
     # if location == None:
     #     raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Address")
-    
+
     # updatedListing["locationLONG"] = location.longitude
     # updatedListing["locationLAT"] = location.latitude
 
     updatedListing["locationLONG"] = -77.036560
     updatedListing["locationLAT"] = 38.897957
 
-    
-   
     # Remove address from dict
     updatedListing.pop('address')
-    
-    # Add rentals 
+
+    # Add rentals
     updatedListing["rentals"] = list()
-    
+
     # Insert listing onto db
     newListing = await listingCollection.insert_one(updatedListing)
-    
+
     # Find the new listing in the db
-    createdListing = await listingCollection.find_one({"_id":newListing.inserted_id})
+    createdListing = await listingCollection.find_one({"_id": newListing.inserted_id})
 
     # Decode the listing to a dict
-    decodedListing = decode_bson(createdListing,ListingModel.get_keys())
-    
-    return decodedListing   
-    
-async def get_listing(listingId: str, category : str):
-    #validate listing id input
+    decodedListing = decode_bson(createdListing, ListingModel.get_keys())
+
+    return decodedListing
+
+
+async def get_listing(listingId: str, category: str):
+    # validate listing id input
     try:
         objectId = ObjectId(listingId)
     except Exception:
-       raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Listing Id")
-    
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid Listing Id")
+
     # Check if category is valid
     listingCollection = listingsCollections.get(category)
-    
-    if listingCollection == None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid category")
-    
-    # Find the listing in the db
-    listing = await listingCollection.find_one({"_id":objectId})
-   
-    if listing == None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Listing does not exist")
-    
-    # Decode the listing to a dict
-    decodedListing = decode_bson(listing,ListingModel.get_keys())
-    return decodedListing
-    
 
-async def modify_listing(listingId:str, listing: dict):
-    
+    if listingCollection == None:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid category")
+
+    # Find the listing in the db
+    listing = await listingCollection.find_one({"_id": objectId})
+
+    if listing == None:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Listing does not exist")
+
+    # Decode the listing to a dict
+    decodedListing = decode_bson(listing, ListingModel.get_keys())
+    return decodedListing
+
+
+async def modify_listing(listingId: str, listing: dict):
+
     # If there are no none values withing the listing
     if len(listing) >= 1:
         try:
             objectId = ObjectId(listingId)
         except Exception:
-            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Listing Id")
-        
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST, detail="Invalid Listing Id")
+
         listingCollection = listingsCollections.get(listing.get("category"))
-        
+
         # Find the listing in the db
-        found_listing = await listingCollection.find_one({"_id":objectId})
+        found_listing = await listingCollection.find_one({"_id": objectId})
         if found_listing != None:
-            
-            #Updating listing address and gps coordinates
+
+            # Updating listing address and gps coordinates
             if(listing["address"] != None):
 
                 addressModel = AddressModel.parse_obj(listing["address"])
-                
 
-                #UNCOMMENT THIS WHEN FINAL PRODCUT OKAY
-                #CURRENTLY JUST COORDS FOR THE WHITE HOUSE SO WE DONT SPAM GOOGLE API THANK YOU
+                # UNCOMMENT THIS WHEN FINAL PRODCUT OKAY
+                # CURRENTLY JUST COORDS FOR THE WHITE HOUSE SO WE DONT SPAM GOOGLE API THANK YOU
 
                 # location = getGPS(addressModel)
 
@@ -129,80 +133,91 @@ async def modify_listing(listingId:str, listing: dict):
 
                 listing["locationLONG"] = -77.036560
                 listing["locationLAT"] = 38.897957
-                
+
             # Remove address from dict
             listing.pop('address')
-            
-            await listingCollection.update_one({"_id": objectId}, {"$set": listing})
-            
-            updated_listing = await listingCollection.find_one({"_id":objectId})
-            return decode_bson(updated_listing,ListingModel.get_keys())
-        else:
-            raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Listing does not exist")
-    else:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="No Modifications")
 
-async def delete_listing(listingId: str,category : str):
+            await listingCollection.update_one({"_id": objectId}, {"$set": listing})
+
+            updated_listing = await listingCollection.find_one({"_id": objectId})
+            return decode_bson(updated_listing, ListingModel.get_keys())
+        else:
+            raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST, detail="Listing does not exist")
+    else:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="No Modifications")
+
+
+async def delete_listing(listingId: str, category: str):
     try:
         objectId = ObjectId(listingId)
     except Exception:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Listing Id")
-    
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid Listing Id")
+
     # Check if category is valid
     listingCollection = listingsCollections.get(category)
-    
+
     if listingCollection == None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid category")
-    
-    found_listing = await listingCollection.find_one({"_id":objectId})
-    
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid category")
+
+    found_listing = await listingCollection.find_one({"_id": objectId})
+
     if found_listing != None:
         await listingCollection.delete_one({"_id": objectId})
-        raise HTTPException(status_code=HTTPStatus.OK,detail="Successfully Deleted Listing")
+        raise HTTPException(status_code=HTTPStatus.OK,
+                            detail="Successfully Deleted Listing")
     else:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Listing Id Not Found")
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Listing Id Not Found")
 
-async def get_all_listings(category : str):
-    
+
+async def get_all_listings(category: str):
+
     # Check if category is valid
     listingCollection = listingsCollections.get(category)
-    
+
     if listingCollection == None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid category")
-    
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid category")
+
     # Finds the first 1000 results within the listing collection
     listings = await listingCollection.find().to_list(1000)
-   
+
     decoded_listings = list()
     if listings != None:
         for listing in listings:
-            decoded_listings.append(decode_bson(listing,ListingResponseModel.get_keys()))
-        
+            decoded_listings.append(decode_bson(
+                listing, ListingResponseModel.get_keys()))
+
     return decoded_listings
 
+
 async def get_user(userID: str):
-    
-    #validate id
+
+    # validate id
     try:
         objectId = ObjectId(userID)
     except Exception:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid User Id")
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST, detail="Invalid User Id")
 
-    user = await userCollection.find_one({"_id":objectId})
+    user = await userCollection.find_one({"_id": objectId})
 
     if user == None:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="No User Found")
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST, detail="No User Found")
 
-    
-    decodedUser = decode_bson_user(user,UserModel.get_keys())
+    decodedUser = decode_bson_user(user, UserModel.get_keys())
 
     return decodedUser
 
-    
-def decode_bson_user(document,keys):
+
+def decode_bson_user(document, keys):
     newDict = dict()
     newDict["user_id"] = str(document["_id"])
-    
 
     for key in keys:
         newDict[key] = document[key]
@@ -210,26 +225,23 @@ def decode_bson_user(document,keys):
     return newDict
 
 
-def decode_bson(document,keys):
+def decode_bson(document, keys):
     newDict = dict()
     newDict["listing_id"] = str(document["_id"])
-    
+
     for key in keys:
         newDict[key] = document[key]
 
     return newDict
 
 
-#**********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
+# **********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
 # def getGPS(address: AddressModel):
 #     # Convert address to long & lat and add it to the dict
 #     geolocator = GoogleV3(api_key=config("MAPS"))
 
-#     address = address.street + " " + address.city + " " + address.zip + " " + address.state    
+#     address = address.street + " " + address.city + " " + address.zip + " " + address.state
 
 #     location = geolocator.geocode(address)
-    
+
 #     return location
-
-
-    
