@@ -8,13 +8,14 @@ from .requestModels import ListingRequestModel, AddressModel
 from .genericModels import ListingModel
 from bson.objectid import ObjectId
 from geopy.geocoders import GoogleV3
+from geopy import distance
 
 # Database Init
 client = motor.motor_asyncio.AsyncIOMotorClient(config("DATABASE_URI"))
 db = client.SPOT
 
 # Database Collections
-userCollection = db.User
+userCollection = db.Users
 listingCollection = db.Listings
 
 # A dictionary that correlates the db collections to each category
@@ -179,6 +180,54 @@ async def get_all_listings(category : str):
             decoded_listings.append(decode_bson(listing,ListingResponseModel.get_keys()))
         
     return decoded_listings
+
+# async def get_user(userID: str):
+    
+#     #validate id
+#     try:
+#         objectId = ObjectId(userID)
+#     except Exception:
+#         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid User Id")
+
+#     user = await userCollection.find_one({"_id":objectId})
+
+#     if user == None:
+#         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="No User Found")
+
+    
+#     decodedUser = decode_bson_user(user,UserModel.get_keys())
+
+#     return decodedUser
+
+    
+async def sort_listing_by_location(category : str, locationLONG : str, locationLAT : str):
+    
+    if float(locationLONG) > 90 or float(locationLONG) < -90 or float(locationLAT) > 90 or float(locationLONG) < -90:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Coordinates")
+    
+    listings = await get_all_listings(category)
+
+
+    #Appending "distance" field to sort on and so the front end can display
+    for listing in listings:
+        listing["distance"] = format(distance.great_circle((listing["locationLAT"], listing["locationLONG"]), (float(locationLAT), float(locationLONG))).miles, '.2f')
+
+    return sorted(listings, key = lambda listing: listing["distance"])
+
+    
+
+
+
+
+def decode_bson_user(document,keys):
+    newDict = dict()
+    newDict["user_id"] = str(document["_id"])
+    
+
+    for key in keys:
+        newDict[key] = document[key]
+
+    return newDict
 
 
 def decode_bson(document,keys):

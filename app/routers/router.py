@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer
 from typing import Union,List
 from app.db.requestModels import ListingRequestModel
 from app.db.responseModels import ListingResponseModel
-from app.db.crud import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings)
+from app.db.crud import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings, sort_listing_by_location)
 from app.core.utils import VerifyToken
 
 
@@ -51,3 +51,6 @@ async def user_modify_listing(listingId: str, listing:ListingRequestModel):
 async def user_delete_listing(listingId: str, category: str):
    return await delete_listing(listingId,category)
    
+@rout.get("/sort_by_location")
+async def user_sort_by_location(category: str, locationLONG: str, locationLAT: str):
+    return await sort_listing_by_location(category, locationLONG, locationLAT)
