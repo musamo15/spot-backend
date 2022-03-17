@@ -1,3 +1,4 @@
+from logging import Filter
 from fastapi import HTTPException
 from http import HTTPStatus
 from decouple import config
@@ -8,6 +9,7 @@ from .requestModels import ListingRequestModel, AddressModel
 from .genericModels import ListingModel
 from bson.objectid import ObjectId
 from geopy.geocoders import GoogleV3
+from geopy import distance
 
 # Database Init
 client = motor.motor_asyncio.AsyncIOMotorClient(config("DATABASE_URI"))
@@ -26,6 +28,7 @@ listingsCollections = {
 async def create_listing(listing: ListingRequestModel):
     
     updatedListing = listing.dict()
+
     
     # determine category
     listingCollection = listingsCollections.get(updatedListing.get("category"))
@@ -97,6 +100,30 @@ async def get_listing(listingId: str, category : str):
     decodedListing = decode_bson(listing,ListingResponseModel.get_keys())
     return decodedListing
     
+async def sort_listing_by_location(category : str, locationLONG : str, locationLAT : str):
+    
+    if float(locationLONG) > 90 or float(locationLONG) < -90 or float(locationLAT) > 90 or float(locationLONG) < -90:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Coordinates")
+    
+    listings = await get_all_listings(category)
+
+
+    #Appending "distance" field to sort on and so the front end can display
+    for listing in listings:
+        listing["distance"] = format(distance.great_circle((listing["locationLAT"], listing["locationLONG"]), (float(locationLAT), float(locationLONG))).miles, '.2f')
+
+    return sorted(listings, key = lambda listing: float(listing["distance"]))
+
+async def get_all_filtered_listings(category: str, filters: dict):
+
+    listings = await get_all_listings(category)
+    newListings = []
+
+    for listing in listings:
+        if filters.items() <= listing["attributes"].items():
+            newListings.append(listing)
+
+    return newListings
 
 async def modify_listing(listingId:str, listing: dict):
     
@@ -131,7 +158,7 @@ async def modify_listing(listingId:str, listing: dict):
                 listing["locationLAT"] = 38.897957
                 
             # Remove address from dict
-            listing.pop('address')
+            #listing.pop('address')
             
             await listingCollection.update_one({"_id": objectId}, {"$set": listing})
             

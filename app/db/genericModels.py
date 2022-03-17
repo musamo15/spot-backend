@@ -23,4 +23,5 @@ class RentalsModel(BaseModel):
     start_date: datetime = Field(...)
     end_date: datetime = Field(...)
     
-     
+
+
