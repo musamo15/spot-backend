@@ -42,7 +42,8 @@ async def user_get_all_listings(category: str):
 async def user_sort_by_location(category: str, locationLONG: str, locationLAT: str):
     return await sort_listing_by_location(category, locationLONG, locationLAT)
 
-@rout.post("/getAllListingsFiltered")
+
+@rout.put("/getAllListingsFiltered", response_model = List[ListingResponseModel])
 async def user_get_all_filtered_listings(category: str, filters : dict):
     return await get_all_filtered_listings(category, filters)
 

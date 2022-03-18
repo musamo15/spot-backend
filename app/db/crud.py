@@ -120,7 +120,7 @@ async def get_all_filtered_listings(category: str, filters: dict):
     newListings = []
 
     for listing in listings:
-        if filters.items() <= listing["attributes"].items():
+        if filters.items() <= listing["attributes"].items(): #<= checks if it is a subset of the other
             newListings.append(listing)
 
     return newListings
