@@ -39,18 +39,17 @@ async def user_get_all_listings(category: str):
     return await get_all_listings(category)
 
 @rout.get("/sort_by_location")
-async def user_sort_by_location(category: str, locationLONG: str, locationLAT: str):
-    return await sort_listing_by_location(category, locationLONG, locationLAT)
+async def user_sort_by_location(category: str, zip: str):
+    return await sort_listing_by_location(category, zip)
 
 
 @rout.put("/getAllListingsFiltered", response_model = List[ListingResponseModel])
 async def user_get_all_filtered_listings(category: str, filters : dict):
     return await get_all_filtered_listings(category, filters)
 
-
 @rout.post("/createListing",response_model=ListingResponseModel)
 async def user_create_listing(listing:ListingRequestModel):
-   return await create_listing(listing)
+    return await create_listing(listing)
 
 @rout.put("/modifyListing",response_model=ListingResponseModel)
 async def user_modify_listing(listingId: str, listing:ListingRequestModel):

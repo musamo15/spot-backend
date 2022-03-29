@@ -100,17 +100,19 @@ async def get_listing(listingId: str, category : str):
     decodedListing = decode_bson(listing,ListingResponseModel.get_keys())
     return decodedListing
     
-async def sort_listing_by_location(category : str, locationLONG : str, locationLAT : str):
+async def sort_listing_by_location(category : str, zip: str):
     
-    if float(locationLONG) > 90 or float(locationLONG) < -90 or float(locationLAT) > 90 or float(locationLONG) < -90:
-        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Coordinates")
+    if len(zip) < 5:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Invalid Zip Code")
     
     listings = await get_all_listings(category)
+
+    location = getGPS(zip)
 
 
     #Appending "distance" field to sort on and so the front end can display
     for listing in listings:
-        listing["distance"] = format(distance.great_circle((listing["locationLAT"], listing["locationLONG"]), (float(locationLAT), float(locationLONG))).miles, '.2f')
+        listing["distance"] = format(distance.great_circle((listing["locationLAT"], listing["locationLONG"]), (float(location.latitude), float(location.longitude))).miles, '.2f')
 
     return sorted(listings, key = lambda listing: float(listing["distance"]))
 
@@ -219,15 +221,13 @@ def decode_bson(document,keys):
 
 
 #**********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
-# def getGPS(address: AddressModel):
-#     # Convert address to long & lat and add it to the dict
-#     geolocator = GoogleV3(api_key=config("MAPS"))
+def getGPS(zip: str):
+    # Convert address to long & lat and add it to the dict
+    geolocator = GoogleV3(api_key=config("MAPS"))
+  
 
-#     address = address.street + " " + address.city + " " + address.zip + " " + address.state    
-
-#     location = geolocator.geocode(address)
-    
-#     return location
+    location = geolocator.geocode(zip)
+    return location
 
 
     
