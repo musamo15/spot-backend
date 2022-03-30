@@ -1,3 +1,4 @@
+from audioop import reverse
 from logging import Filter
 from fastapi import HTTPException
 from http import HTTPStatus
@@ -125,6 +126,7 @@ async def get_all_filtered_listings(category: str, filters: dict):
         if filters.items() <= listing["attributes"].items(): #<= checks if it is a subset of the other
             newListings.append(listing)
 
+    
     return newListings
 
 async def modify_listing(listingId:str, listing: dict):
@@ -191,6 +193,29 @@ async def delete_listing(listingId: str,category : str):
     else:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,detail="Listing Id Not Found")
 
+async def get_all_listings_sorted(category : str, filters : dict, zip : str, sort: str):
+
+    listings = await get_all_filtered_listings(category, filters)
+    
+
+    location = getGPS(zip)
+
+    for listing in listings:
+        listing["distance"] = format(distance.great_circle((listing["locationLAT"], listing["locationLONG"]), (float(location.latitude), float(location.longitude))).miles, '.2f')
+
+    if sort == "distance":
+        return sorted(listings, key = lambda listing: float(listing["distance"]))
+
+    if sort == "priceLowToHigh":
+        return sorted(listings, key = lambda listing: float(listing["item_price"]))
+
+    if sort == "priceHighToLow":
+        return sorted(listings, key= lambda listing: float(listing["item_price"]), reverse=True)
+
+
+    
+
+
 async def get_all_listings(category : str):
     
     # Check if category is valid
@@ -220,7 +245,6 @@ def decode_bson(document,keys):
     return newDict
 
 
-#**********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
 def getGPS(zip: str):
     # Convert address to long & lat and add it to the dict
     geolocator = GoogleV3(api_key=config("MAPS"))
@@ -230,4 +254,9 @@ def getGPS(zip: str):
     return location
 
 
-    
+# def computeDistance(listings, zip):
+
+#     location = getGPS(zip)
+
+#     for listing in listings:
+#         listing["distance"] = format(distance.great_circle((listing["locationLAT"], listing["locationLONG"]), (float(location.latitude), float(location.longitude))).miles, '.2f')

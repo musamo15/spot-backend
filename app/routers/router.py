@@ -47,6 +47,11 @@ async def user_sort_by_location(category: str, zip: str):
 async def user_get_all_filtered_listings(category: str, filters : dict):
     return await get_all_filtered_listings(category, filters)
 
+@rout.put("/getAllListingsSorted")
+async def user_get_all_sorted_listings(category: str, zip: str, filters : dict, sortedOn: str):
+    return await get_all_listings_sorted(category, filters, zip, sortedOn)
+
+
 @rout.post("/createListing",response_model=ListingResponseModel)
 async def user_create_listing(listing:ListingRequestModel):
     return await create_listing(listing)
