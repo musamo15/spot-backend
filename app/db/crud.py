@@ -129,7 +129,7 @@ async def get_all_filtered_listings(category: str, filters: dict):
     listingCollection = listingsCollections.get(category)
 
     
-    listings = await listingCollection.find({"attributes" : filters}).to_list(1000)
+    listings = await listingCollection.find({"attributes" :{"$gte":filters}}).to_list(1000)
 
     decoded_listings = list()
     if listings != None:
