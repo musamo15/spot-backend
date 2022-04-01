@@ -119,15 +119,24 @@ async def sort_listing_by_location(category : str, zip: str):
 
 async def get_all_filtered_listings(category: str, filters: dict):
 
-    listings = await get_all_listings(category)
-    newListings = []
+    # listings = await get_all_listings(category)
+    # newListings = []
 
-    for listing in listings:
-        if filters.items() <= listing["attributes"].items(): #<= checks if it is a subset of the other
-            newListings.append(listing)
+    # for listing in listings:
+    #     if filters.items() <= listing["attributes"].items(): #<= checks if it is a subset of the other
+    #         newListings.append(listing)
+
+    listingCollection = listingsCollections.get(category)
 
     
-    return newListings
+    listings = await listingCollection.find({"attributes" : filters}).to_list(1000)
+
+    decoded_listings = list()
+    if listings != None:
+        for listing in listings:
+            decoded_listings.append(decode_bson(listing,ListingResponseModel.get_keys()))
+    
+    return decoded_listings
 
 async def modify_listing(listingId:str, listing: dict):
     
@@ -213,7 +222,7 @@ async def get_all_listings_sorted(category : str, filters : dict, zip : str, sor
         return sorted(listings, key= lambda listing: float(listing["item_price"]), reverse=True)
 
 
-    
+
 
 
 async def get_all_listings(category : str):
