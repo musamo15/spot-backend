@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import HTTPException
 from http import HTTPStatus
 from decouple import config
@@ -11,6 +12,8 @@ from geopy.geocoders import GoogleV3
 
 # Database Init
 client = motor.motor_asyncio.AsyncIOMotorClient(config("DATABASE_URI"))
+client.get_io_loop =  asyncio.get_running_loop
+
 db = client.SPOT
 
 # Database Collections
