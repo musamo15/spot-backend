@@ -1,53 +1,55 @@
-from fastapi import APIRouter,Request,Response,Depends,status
+from fastapi import APIRouter,Depends
 from fastapi.security import HTTPBearer
-from typing import Union,List
-from app.db.requestModels import ListingRequestModel
-from app.db.responseModels import ListingResponseModel
-from app.db.crud import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings)
-from app.core.utils import VerifyToken
+from typing import List
+from app.db.models.requestModels import ListingRequestModel
+from app.db.models.responseModels import ListingResponseModel
+from app.db.database import (get_all_categories)
+from app.db.listings import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings,get_listing_item_from_query)
+from app.utilities.utilities import VerifyToken
 
 
 rout = APIRouter()
 # Scheme for the Authorization header, lets us require an authentication token for a route
 token_auth_scheme = HTTPBearer()
 
-
-@rout.get("/")
-async def root():
-    return {"SPOT RENTAL Platform" : "Welcome to our page!!"}
-
-@rout.get("/private")
-async def private_route(response : Response, token: str = Depends(token_auth_scheme)):
-    result = VerifyToken(token.credentials).verify()
-    
-    if result.get(status):
-        response.status_code = status.HTTP_400_BAD_REQUEST
-       
-    return result
-
+"""
+    Categories
+"""
+@rout.get("/categories", response_model = List[str])
+async def user_get_categories():
+    return await get_all_categories()
 
 """
     LISTINGS
 """
-@rout.get("/getListing", response_model= ListingResponseModel)
-async def user_get_listing(listingId: str,category: str):
-    return  await get_listing(listingId,category)
+@rout.get("/listings/{listing_id}", response_model= ListingResponseModel)
+async def user_get_listing(listing_id,category: str):
+    return await get_listing(listing_id,category)
 
-@rout.get("/getAllListings",response_model=List[ListingResponseModel])
+@rout.get("/listings",response_model=List[ListingResponseModel])
 async def user_get_all_listings(category: str):
     return await get_all_listings(category)
 
-@rout.post("/createListing",response_model=ListingResponseModel)
-async def user_create_listing(listing:ListingRequestModel):
+# Search query
+@rout.get("/search",response_model=List[ListingResponseModel])
+async def user_get_listing_item_from_query(query: str):
+    return await get_listing_item_from_query(query)
+
+@rout.post("/listings",response_model=ListingResponseModel)
+async def user_create_listing(listing:ListingRequestModel, token: str = Depends(token_auth_scheme)):
+   VerifyToken(token.credentials).verify()
    return await create_listing(listing)
 
-@rout.put("/modifyListing",response_model=ListingResponseModel)
-async def user_modify_listing(listingId: str, listing:ListingRequestModel):
-    validListing = {key: value for key, value in listing.dict().items() if value != ""}
+@rout.put("/listings/{listing_id}",response_model=ListingResponseModel)
+async def user_modify_listing(listing_id, category: str, modifiedListing: dict,token: str = Depends(token_auth_scheme)):
+    VerifyToken(token.credentials).verify()
     
-    return await modify_listing(listingId,validListing)
+    validListing = {key: value for key, value in modifiedListing.items() if value != ""}
+    return await modify_listing(listing_id,category,validListing)
 
-@rout.delete("/deleteListing")
-async def user_delete_listing(listingId: str, category: str):
-   return await delete_listing(listingId,category)
+@rout.delete("/listings/{listing_id}", response_model=dict)
+async def user_delete_listing(listing_id, category: str, token: str = Depends(token_auth_scheme)):
+   VerifyToken(token.credentials).verify()
+   return await delete_listing(listing_id,category)
+
    

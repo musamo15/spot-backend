@@ -2,7 +2,8 @@ pydantic~=1.9.0
 fastapi==0.75.0
 motor~=2.5.1
 python-decouple~=3.5
-cryptography==36.0.1
+cryptography==36.0.2
+pyOpenSSL==22.0.0
 PyJWT==2.3.0
 geopy~=2.2.0
 pymongo~=3.12.3

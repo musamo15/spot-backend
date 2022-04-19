@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from .genericModels import *
+from app.db.models.genericModels import *
 
 class AddressModel(BaseModel):
     street: str = Field(...)
