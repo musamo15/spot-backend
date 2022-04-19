@@ -18,4 +18,4 @@ app.include_router(router.rout)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello Bigger Applications!"}
+    return {"SPOT RENTAL Platform" : "Welcome to our page!!"}
