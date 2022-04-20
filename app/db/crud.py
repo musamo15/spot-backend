@@ -26,6 +26,18 @@ listingsCollections = {
     "Car": db.CarListings
 }
 
+
+async def get_all_categories():
+    categories = db.Categories
+
+    return await categories.find({}, {"Category": 1, "Attributes": 1, "_id":0}).to_list(100)
+
+async def get_all_attributes(category: str):
+
+    categories = db.Categories
+
+    return await categories.find({"Category": category}, {"Attributes": 1, "_id": 0}).to_list(100)
+    
 async def create_listing(listing: ListingRequestModel):
     
     updatedListing = listing.dict()
@@ -212,13 +224,19 @@ async def get_all_listings_sorted(category : str, filters : dict, zip : str, sor
     for listing in listings:
         listing["distance"] = format(distance.great_circle((listing["locationLAT"], listing["locationLONG"]), (float(location.latitude), float(location.longitude))).miles, '.2f')
 
-    if sort == "distance":
+    if sort == "None":
+        return listings
+
+    elif sort == "distance":
         return sorted(listings, key = lambda listing: float(listing["distance"]))
 
-    if sort == "priceLowToHigh":
+    elif sort == "popularity":
+        return sorted(listings, key = lambda listing: len(listing["rentals"]))
+
+    elif sort == "priceLowToHigh":
         return sorted(listings, key = lambda listing: float(listing["item_price"]))
 
-    if sort == "priceHighToLow":
+    elif sort == "priceHighToLow":
         return sorted(listings, key= lambda listing: float(listing["item_price"]), reverse=True)
 
 

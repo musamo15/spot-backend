@@ -26,6 +26,16 @@ async def private_route(response : Response, token: str = Depends(token_auth_sch
        
     return result
 
+"""
+    Categories
+"""
+@rout.get("/getAllCategories")
+async def user_get_all_categories():
+    return await get_all_categories()
+
+@rout.get("/getAllAttributes")
+async def user_get_all_attributes(category: str):
+    return await get_all_attributes(category)
 
 """
     LISTINGS
