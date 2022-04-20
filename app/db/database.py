@@ -1,3 +1,4 @@
+import asyncio
 from decouple import config
 import motor.motor_asyncio
 from geopy.geocoders import GoogleV3
