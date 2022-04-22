@@ -2,7 +2,7 @@ import asyncio
 from decouple import config
 import motor.motor_asyncio
 from geopy.geocoders import GoogleV3
-
+import asyncio
 from app.db.models.responseModels import ListingResponseModel
 from app.db.models.requestModels import ListingRequestModel, AddressModel
 from app.utils.utilities import (decode_bson)
@@ -30,13 +30,11 @@ async def get_all_categories():
     return categoryList
 
 
-# **********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
-# def getGPS(address: AddressModel):
-#     # Convert address to long & lat and add it to the dict
-#     geolocator = GoogleV3(api_key=config("MAPS"))
+#**********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
+def getGPS(zip: str):
+    # Convert address to long & lat and add it to the dict
+    geolocator = GoogleV3(api_key=config("MAPS"))
+  
 
-#     address = address.street + " " + address.city + " " + address.zip + " " + address.state
-
-#     location = geolocator.geocode(address)
-
-#     return location
+    location = geolocator.geocode(zip)
+    return location

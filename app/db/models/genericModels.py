@@ -8,14 +8,14 @@ class ListingModel(BaseModel):
     host_id: str = Field(...)
     category: str = Field(...)
     item_name: str = Field(...)
-    item_price: str = Field(...)
+    item_price: float = Field(...)
     start_date: datetime = Field(...)
     end_date: datetime = Field(...)
     attributes: dict = Field(...)
     
     @staticmethod
     def get_keys():
-        return list(('host_id','category','item_name','item_price','start_date','end_date','attributes'))
+        return list(('host_id','category','item_name','item_price','start_date','end_date','attributes','distance'))
 
 class RentalsModel(BaseModel):
     host_id: str = Field(...)

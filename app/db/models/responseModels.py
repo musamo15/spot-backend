@@ -30,3 +30,15 @@ class UsersModel(BaseModel):
     @staticmethod
     def get_meta_data_keys():
         return list(('address','phone',))
+    @staticmethod
+    def get_keys():
+        additionalKeys = list(('rentals','locationLONG','locationLAT'))
+        
+        for key in ListingModel.get_keys():
+            additionalKeys.append(key)
+        
+        return additionalKeys
+
+
+
+

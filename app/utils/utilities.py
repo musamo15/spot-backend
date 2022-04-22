@@ -17,6 +17,14 @@ def decode_bson(document, model):
 
     return listing
 
+def decode_sortedbson(document,keys):
+    newDict = dict()
+    newDict["listing_id"] = str(document["_id"])
+    
+    for key in keys:
+        newDict[key] = document[key]
+
+    return newDict
 
 def listing_active(start_date, end_date):
     current = datetime.today().date()

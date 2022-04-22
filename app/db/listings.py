@@ -12,7 +12,7 @@ async def create_listing(listing: ListingRequestModel):
     updatedListing = listing.dict()
 
     # determine category
-    listingCollection = listingsCollections.get(updatedListing.get("category"))
+    listingCollection = listingsCollections.get(updatedListing["category"])
 
     if listingCollection == None:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
