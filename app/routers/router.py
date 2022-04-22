@@ -7,6 +7,7 @@ from app.db.database import (get_all_categories)
 from app.db.listings import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings,get_listing_item_from_query,get_user_rentals)
 from app.db.users import (get_user_data,update_user_data)
 from app.utils.utilities import (VerifyToken)
+from app.db.sorting import *
 
 
 rout = APIRouter()
@@ -41,6 +42,10 @@ async def user_get_categories():
 @rout.get("/listings/{listing_id}", response_model= ListingResponseModel)
 async def user_get_listing(listing_id,category: str):
     return await get_listing(listing_id,category)
+
+@rout.put("/listingsSorted")
+async def user_get_listings_sorted(category: str, filters: dict, sortedOn: str, zip):
+    return await get_listings_sorted(category, filters, sortedOn, zip)
 
 @rout.get("/listings",response_model=List[ListingResponseModel])
 async def user_get_all_listings(category: str):
