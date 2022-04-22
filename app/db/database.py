@@ -5,7 +5,7 @@ from geopy.geocoders import GoogleV3
 
 from app.db.models.responseModels import ListingResponseModel
 from app.db.models.requestModels import ListingRequestModel, AddressModel
-from app.utilities.utilities import (decode_bson)
+from app.utils.utilities import (decode_bson)
 
 # Database Init
 client = motor.motor_asyncio.AsyncIOMotorClient(config("DATABASE_URI"))

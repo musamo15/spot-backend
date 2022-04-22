@@ -16,3 +16,17 @@ class ListingResponseModel(ListingModel):
     
     def __hash__(self) -> int:
         return hash(self.listing_id)
+
+class UsersModel(BaseModel):
+    name: str = Field(...)
+    email: str = Field(...)
+    phone: str = Field(...)
+    nickname: str = Field(...)
+    picture: str = Field(...)
+    address: AddressModel = Field(...) 
+    listings: List[ListingResponseModel] = Field(...)
+    rentals: List[ListingResponseModel] = Field(...)
+    
+    @staticmethod
+    def get_meta_data_keys():
+        return list(('address','phone',))

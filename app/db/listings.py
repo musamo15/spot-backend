@@ -4,7 +4,7 @@ from bson.objectid import ObjectId
 
 from app.db.models.responseModels import ListingResponseModel
 from app.db.models.requestModels import ListingRequestModel, AddressModel
-from app.utilities.utilities import (decode_bson, listing_active)
+from app.utils.utilities import (decode_bson, listing_active)
 from app.db.database import (listingsCollections)
 
 
@@ -106,13 +106,13 @@ async def modify_listing(listingId: str, category: str, listing: dict):
         listingCollection = listingsCollections.get(category)
 
         print(listingCollection)
-        
+
         # Find the listing in the db
         found_listing = await listingCollection.find_one({"_id": objectId})
         if found_listing != None:
 
             # Updating listing address and gps coordinates
-            
+
             if("address" in listing):
 
                 addressModel = AddressModel.parse_obj(listing["address"])
@@ -207,7 +207,7 @@ async def get_matching_items(query: str, collection, limit=50):
 
     # Searches through the specified collection looking for items that match the following regex -> .*{item_name}.* (case insensitive)
     foundListings = collection.find(
-        {"item_name": {'$regex': '.*{}.*'.format(query),'$options': 'i'},"active": True,"deleted": False}).limit(limit)
+        {"item_name": {'$regex': '.*{}.*'.format(query), '$options': 'i'}, "active": True, "deleted": False}).limit(limit)
 
     decoded_listings = list()
     async for listing in foundListings:
@@ -215,3 +215,32 @@ async def get_matching_items(query: str, collection, limit=50):
             listing, ListingResponseModel))
 
     return decoded_listings
+
+
+async def get_user_listings(user_id: str,limit=50):
+    setListings = set()
+
+    for category in listingsCollections:
+        listings = listingsCollections.get(category).find({"host_id": user_id}).limit(limit)
+        decoded_listings = list()
+        async for listing in listings:
+           
+            decoded_listings.append(decode_bson(
+            listing, ListingResponseModel))
+        
+        setListings = setListings.union(decoded_listings)
+    return setListings
+
+async def get_user_rentals(user_id: str,limit=50):
+    setListings = set()
+
+    for category in listingsCollections:
+        listings = listingsCollections.get(category).find({"rentals.leasse_id": user_id}).limit(limit)
+        decoded_listings = list()
+        async for listing in listings:
+           
+            decoded_listings.append(decode_bson(
+            listing, ListingResponseModel))
+        
+        setListings = setListings.union(decoded_listings)
+    return setListings

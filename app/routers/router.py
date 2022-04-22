@@ -4,13 +4,29 @@ from typing import List
 from app.db.models.requestModels import ListingRequestModel
 from app.db.models.responseModels import ListingResponseModel
 from app.db.database import (get_all_categories)
-from app.db.listings import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings,get_listing_item_from_query)
-from app.utilities.utilities import VerifyToken
+from app.db.listings import (create_listing,get_listing, modify_listing,delete_listing,get_all_listings,get_listing_item_from_query,get_user_rentals)
+from app.db.users import (get_user_data,update_user_data)
+from app.utils.utilities import (VerifyToken)
 
 
 rout = APIRouter()
 # Scheme for the Authorization header, lets us require an authentication token for a route
 token_auth_scheme = HTTPBearer()
+
+"""
+    Users
+"""
+@rout.get("/users/{user_id}")
+async def user_get_user_data(user_id: str, token: str = Depends(token_auth_scheme)):
+    VerifyToken(token.credentials).verify()
+    
+    return await get_user_data(user_id)
+
+@rout.put("/users/{users_id}")
+async def user_update_user_data(users_id: str, updated_data: dict ,token: str = Depends(token_auth_scheme)):
+    VerifyToken(token.credentials).verify()
+    
+    return await update_user_data(users_id,updated_data)
 
 """
     Categories
@@ -51,5 +67,3 @@ async def user_modify_listing(listing_id, category: str, modifiedListing: dict,t
 async def user_delete_listing(listing_id, category: str, token: str = Depends(token_auth_scheme)):
    VerifyToken(token.credentials).verify()
    return await delete_listing(listing_id,category)
-
-   
