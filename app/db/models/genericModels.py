@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Any
+from typing import Any, Optional
 from datetime import datetime
 
 class ListingModel(BaseModel):
@@ -22,5 +22,12 @@ class RentalsModel(BaseModel):
     leasse_id: str = Field(...)
     start_date: datetime = Field(...)
     end_date: datetime = Field(...)
-    
+
+class AddressModel(BaseModel):
+    street1: str = Field(...)
+    street2: Optional[str]
+    city: str = Field(...)
+    state: str = Field(...)
+    zip: str = Field(...)
+    country: str = Field(...)
      
