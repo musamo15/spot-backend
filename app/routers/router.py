@@ -1,3 +1,5 @@
+from datetime import date
+from xmlrpc.client import DateTime
 from fastapi import APIRouter,Depends
 from fastapi.security import HTTPBearer
 from typing import List
@@ -8,6 +10,7 @@ from app.db.listings import (create_listing,get_listing, modify_listing,delete_l
 from app.db.users import (get_user_data,update_user_data)
 from app.utils.utilities import (VerifyToken)
 from app.db.sorting import *
+from app.db.renting import *
 
 
 rout = APIRouter()
@@ -72,3 +75,8 @@ async def user_modify_listing(listing_id, category: str, modifiedListing: dict,t
 async def user_delete_listing(listing_id, category: str, token: str = Depends(token_auth_scheme)):
    VerifyToken(token.credentials).verify()
    return await delete_listing(listing_id,category)
+
+
+@rout.put("/listings/{listing_id}/rent")
+async def user_rent_listing(listing_id, lessee_id, category: str, start_date, end_date):
+    return await add_rental(listing_id, lessee_id, category, start_date, end_date)
