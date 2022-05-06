@@ -105,7 +105,6 @@ async def modify_listing(listingId: str, category: str, listing: dict):
 
         listingCollection = listingsCollections.get(category)
 
-        print(listingCollection)
 
         # Find the listing in the db
         found_listing = await listingCollection.find_one({"_id": objectId})
@@ -184,6 +183,7 @@ async def get_all_listings(category: str, limit=50):
                             detail="Invalid category")
 
     listings = listingCollection.find().limit(limit)
+
 
     decoded_listings = list()
     if listings != None:
