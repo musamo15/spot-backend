@@ -79,7 +79,8 @@ async def user_delete_listing(listing_id, category: str, token: str = Depends(to
 
 
 @rout.put("/listings/{listing_id}/rent")
-async def user_rent_listing(listing_id, lessee_id, category: str, start_date, end_date):
+async def user_rent_listing(listing_id, lessee_id, category: str, start_date: datetime, end_date: datetime, token: str = Depends(token_auth_scheme)):
+    VerifyToken(token.credentials).verify()
     return await add_rental(listing_id, lessee_id, category, start_date, end_date)
 """
     IMAGES

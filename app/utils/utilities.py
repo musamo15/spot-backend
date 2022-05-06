@@ -26,8 +26,7 @@ def decode_sortedbson(document,keys):
 
     return newDict
 
-def listing_active(start_date, end_date):
-    current = datetime.today().date()
+def listing_active(start_date, end_date,current=datetime.today().date()):
     start = start_date.date()
     end = end_date.date()
 

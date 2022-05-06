@@ -15,11 +15,15 @@ async def get_user_data(user_id: str):
     try:
         user = Users.get(user_id)
     except Exception:
+        print(user_id)
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
                             detail="Invalid User Id")
     user_data = dict(**user)
-    user_data['listings'] = await __get_user_listings__(user_id)
-    user_data['rentals'] = await __get_user_rentals(user_id)
+    # user_data['listings'] = await __get_user_listings__(user_id)
+    # user_data['rentals'] = await __get_user_rentals(user_id)
+    
+    user_data['listings'] = list()
+    user_data['rentals'] = list()
     
     return decode_user(user_data)
 
