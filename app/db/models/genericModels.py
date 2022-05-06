@@ -16,7 +16,7 @@ class ListingModel(BaseModel):
     
     @staticmethod
     def get_keys():
-        return list(('host_id','category','item_name','item_price','start_date','end_date','attributes','distance'))
+        return list(('host_id','category','item_name','item_price','start_date','end_date','attributes','distance','images'))
 
 class RentalsModel(BaseModel):
     host_id: str = Field(...)

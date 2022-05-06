@@ -5,6 +5,7 @@ from app.db.models.genericModels import *
 
 class ListingResponseModel(ListingModel):
     listing_id: str = Field(...)
+    host_name: str = Field(...)
     rentals: List[RentalsModel] = Field(...)
     locationLONG: str = Field(...)
     locationLAT: str = Field(...)
