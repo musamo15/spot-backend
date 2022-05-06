@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from http import HTTPStatus
 from bson.objectid import ObjectId
+from dateutil import parser
 
 from app.db.models.responseModels import ListingResponseModel
 from app.db.models.requestModels import ListingRequestModel, AddressModel
@@ -130,7 +131,7 @@ async def modify_listing(listingId: str, category: str, listing: dict):
 
             # Updating listing address and gps coordinates
 
-            if("address" in listing):
+            if "address" in listing:
 
                 addressModel = AddressModel.parse_obj(listing["address"])
 
@@ -146,6 +147,28 @@ async def modify_listing(listingId: str, category: str, listing: dict):
                 listing["locationLAT"] = 38.897957
                 # Remove address from dict
                 listing.pop('address')
+            
+            if "start_date" in listing:
+                # Convert start date into datetime
+                try:
+                    start_date = parser.parse(listing["start_date"])
+                    listing["start_date"] = start_date
+                except Exception as e:
+                    print(e)
+                    raise HTTPException(
+                    status_code=HTTPStatus.BAD_REQUEST, detail="Unable to update start date")
+            
+            if "end_date" in listing:
+                # Convert start date into datetime
+                try:
+                    end_date = parser.parse(listing["end_date"])
+                    listing["end_date"] = end_date
+                except Exception:
+                    raise HTTPException(
+                    status_code=HTTPStatus.BAD_REQUEST, detail="Unable to update end date")
+            
+            if "item_price" in listing:
+                listing["item_price"] = float(listing["item_price"])
 
             await listingCollection.update_one({"_id": objectId}, {"$set": listing})
 
@@ -177,8 +200,8 @@ async def delete_listing(listingId: str, category: str):
 
     if found_listing != None:
         deleteListing = {
-            "active": "false",
-            "deleted": "true"
+            "active": False,
+            "deleted": True
         }
         try:
             await listingCollection.update_one({"_id": objectId}, {"$set": deleteListing})
