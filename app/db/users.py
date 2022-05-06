@@ -9,22 +9,22 @@ from app.db.listings import (get_user_listings,get_user_rentals)
 Users = get_users_api()
 
 
-async def get_user_data(user_id: str):
-
+async def get_user(user_id: str):
     # User returned from mgmnt api request
     try:
         user = Users.get(user_id)
     except Exception:
-        print(user_id)
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
                             detail="Invalid User Id")
-    user_data = dict(**user)
-    # user_data['listings'] = await __get_user_listings__(user_id)
-    # user_data['rentals'] = await __get_user_rentals(user_id)
+    return user
+     
+async def get_user_data(user_id: str):
+
+    user_data = dict(**await get_user(user_id))
     
-    user_data['listings'] = list()
-    user_data['rentals'] = list()
-    
+    user_data['listings'] = await __get_user_listings__(user_id)
+    user_data['rentals'] = await __get_user_rentals(user_id)
+   
     return decode_user(user_data)
 
 async def __get_user_listings__(user_id: str):
@@ -78,7 +78,7 @@ def decode_user(user):
     userDict['picture'] = user['picture']
 
     # Check if address exists
-    if len(metaData['address']) > 0:
+    if "address" in metaData and len(metaData['address']) > 0:
         userDict['address'] = AddressModel.parse_obj(metaData['address'])
     else:
         userDict['address'] = {

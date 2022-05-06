@@ -9,7 +9,6 @@ from auth0.v3.management import Users
 
 from app.db.models import *
 
-
 def decode_bson(document, model):
     listing_id = str(document["_id"])
     document["listing_id"] = listing_id

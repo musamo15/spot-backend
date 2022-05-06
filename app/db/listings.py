@@ -4,9 +4,18 @@ from bson.objectid import ObjectId
 
 from app.db.models.responseModels import ListingResponseModel
 from app.db.models.requestModels import ListingRequestModel, AddressModel
-from app.utils.utilities import (decode_bson, listing_active)
+from app.utils.utilities import (decode_bson, listing_active,get_users_api)
 from app.db.database import (listingsCollections)
 
+async def get_user(user_id: str):
+    # User returned from mgmnt api request
+    Users = get_users_api()
+    try:
+        user = Users.get(user_id)
+    except Exception:
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid User Id")
+    return user
 
 async def create_listing(listing: ListingRequestModel):
     updatedListing = listing.dict()
@@ -25,6 +34,13 @@ async def create_listing(listing: ListingRequestModel):
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
                             detail="Listing already exists")
 
+    # Check if host is valid
+    try:
+        host = dict(**await get_user(listing.host_id))["user_metadata"]
+    except Exception as e:
+        print(e)
+        raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
+                            detail="Invalid host")
     # Inserting GPS cords into the dict
 
     # **********************Commented out to not spam API calls for google maps UNCOMMENT FOR FINAL PRODCUT THANK YOU********************
@@ -53,6 +69,9 @@ async def create_listing(listing: ListingRequestModel):
 
     # Add deleted
     updatedListing["deleted"] = False
+
+    # Add host name
+    updatedListing["host_name"] = host['first_name'] + ' ' + host['last_name']
 
     # Insert listing onto db
     newListing = await listingCollection.insert_one(updatedListing)
@@ -83,7 +102,7 @@ async def get_listing(listingId: str, category: str):
                             detail="Invalid category")
 
     # Find the listing in the db
-    listing = await listingCollection.find_one({"_id": objectId})
+    listing = await listingCollection.find_one({"_id": objectId,  "active": True, "deleted": False})
 
     if listing == None:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
@@ -104,7 +123,6 @@ async def modify_listing(listingId: str, category: str, listing: dict):
                 status_code=HTTPStatus.BAD_REQUEST, detail="Invalid Listing Id")
 
         listingCollection = listingsCollections.get(category)
-
 
         # Find the listing in the db
         found_listing = await listingCollection.find_one({"_id": objectId})
@@ -182,8 +200,8 @@ async def get_all_listings(category: str, limit=50):
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
                             detail="Invalid category")
 
-    listings = listingCollection.find({ "active": True, "deleted": False}).limit(limit)
-
+    listings = listingCollection.find(
+        {"active": True, "deleted": False}).limit(limit)
 
     decoded_listings = list()
     if listings != None:
@@ -217,30 +235,33 @@ async def get_matching_items(query: str, collection, limit=50):
     return decoded_listings
 
 
-async def get_user_listings(user_id: str,limit=50):
+async def get_user_listings(user_id: str, limit=50):
     setListings = set()
 
     for category in listingsCollections:
-        listings = listingsCollections.get(category).find({"host_id": user_id, "active": True, "deleted": False}).limit(limit)
+        listings = listingsCollections.get(category).find(
+            {"host_id": user_id, "active": True, "deleted": False}).limit(limit)
         decoded_listings = list()
         async for listing in listings:
-           
+
             decoded_listings.append(decode_bson(
-            listing, ListingResponseModel))
-        
+                listing, ListingResponseModel))
+
         setListings = setListings.union(decoded_listings)
     return setListings
 
-async def get_user_rentals(user_id: str,limit=50):
+
+async def get_user_rentals(user_id: str, limit=50):
     setListings = set()
 
     for category in listingsCollections:
-        listings = listingsCollections.get(category).find({"rentals.leasse_id": user_id, "active": True, "deleted": False}).limit(limit)
+        listings = listingsCollections.get(category).find(
+            {"rentals.leasse_id": user_id, "active": True, "deleted": False}).limit(limit)
         decoded_listings = list()
         async for listing in listings:
-           
+
             decoded_listings.append(decode_bson(
-            listing, ListingResponseModel))
-        
+                listing, ListingResponseModel))
+
         setListings = setListings.union(decoded_listings)
     return setListings
