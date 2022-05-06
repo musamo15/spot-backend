@@ -182,7 +182,7 @@ async def get_all_listings(category: str, limit=50):
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
                             detail="Invalid category")
 
-    listings = listingCollection.find().limit(limit)
+    listings = listingCollection.find({ "active": True, "deleted": False}).limit(limit)
 
 
     decoded_listings = list()
@@ -221,7 +221,7 @@ async def get_user_listings(user_id: str,limit=50):
     setListings = set()
 
     for category in listingsCollections:
-        listings = listingsCollections.get(category).find({"host_id": user_id}).limit(limit)
+        listings = listingsCollections.get(category).find({"host_id": user_id, "active": True, "deleted": False}).limit(limit)
         decoded_listings = list()
         async for listing in listings:
            
@@ -235,7 +235,7 @@ async def get_user_rentals(user_id: str,limit=50):
     setListings = set()
 
     for category in listingsCollections:
-        listings = listingsCollections.get(category).find({"rentals.leasse_id": user_id}).limit(limit)
+        listings = listingsCollections.get(category).find({"rentals.leasse_id": user_id, "active": True, "deleted": False}).limit(limit)
         decoded_listings = list()
         async for listing in listings:
            

@@ -3,8 +3,6 @@ from http import HTTPStatus
 from bson.objectid import ObjectId
 from app.db.models.responseModels import *
 
-from datetime import datetime
-
 from app.db.database import (listingsCollections)
 from app.db.listings import *
 from app.utils.utilities import *
@@ -17,17 +15,24 @@ from datetime import datetime
 twilio = Client(config("TWILIO_ACCOUNT_SID"), config("TWILIO_KEY"))
 
 
-
 async def add_rental(listing_id, lessee_id, category: str, start_date, end_date):
-
+    
     listing = await get_listing(listing_id, category)
 
+    listing = listing.dict()
+    
+    # Validate listing availability
+    try:
+        if not listing_active(start_date,end_date,listing['start_date'].date()):
+            raise Exception
+    except Exception as e:
+        raise HTTPException(
+                status_code=HTTPStatus.BAD_REQUEST, detail="Invalid Rental Days")
+    
+    
     listingCollection = listingsCollections.get(category)
 
     objectId = ObjectId(listing_id)
-
-
-    listing = listing.dict()
 
     if not listing["active"] or listing["deleted"]:
                 raise HTTPException(
@@ -55,7 +60,9 @@ async def add_rental(listing_id, lessee_id, category: str, start_date, end_date)
 
     try:
         lessee = (await get_user_data(lessee_id)).dict()
+        print("Leasse id: " + lessee_id)
         host = (await get_user_data(listing["host_id"])).dict()
+        print("Host id " + listing["host_id"])
         
     except Exception:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST,
@@ -66,24 +73,17 @@ async def add_rental(listing_id, lessee_id, category: str, start_date, end_date)
         
         #Message to buyer
         message = twilio.messages.create(
-            body = ("You have successfully submitted a rental for item: " + listing["item_name"] + " \nfrom: " + start_date[0:10] + " \nto: " + end_date[0:10]),
+            body = ("You have successfully submitted a rental for item: " + listing["item_name"] + " \nfrom: " + start_date.strftime("%d/%m/%Y") + " \nto: " + end_date.strftime("%d/%m/%Y")),
             from_ = '+16067280487',
             to=lessee["phone"])
 
         #Message to seller
 
         message = twilio.messages.create(
-            body = ("Your item \"" + listing["item_name"] + "\" has been rented \nfrom: " + start_date[0:10] + " \nto: " + end_date[0:10]),
+            body = ("Your item \"" + listing["item_name"] + "\" has been rented \nfrom: " + start_date.strftime("%d/%m/%Y") + " \nto: " + end_date.strftime("%d/%m/%Y")),
             from_ = '+16067280487',
             to=host["phone"])
         
-
-
-
-
-
-    
-
 
     return decode_bson(updated_listing, ListingResponseModel)
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import Any, Optional
+from typing import Optional,List
 from datetime import datetime
 
 class ListingModel(BaseModel):
@@ -12,6 +12,7 @@ class ListingModel(BaseModel):
     start_date: datetime = Field(...)
     end_date: datetime = Field(...)
     attributes: dict = Field(...)
+    images: List[str] = Field(...)
     
     @staticmethod
     def get_keys():
